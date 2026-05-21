@@ -25,27 +25,82 @@
       console.error("PROMPTS not loaded");
       return;
     }
+    populateStats();
     populateCategoryFilter();
     bindEvents();
     render();
+    initBackToTop();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Stats hero counters                                                */
+  /* ------------------------------------------------------------------ */
+  function populateStats() {
+    const total = window.PROMPTS.length;
+    const cats = new Set(window.PROMPTS.map((p) => p.category));
+    animateCount("#stat-prompts", total);
+    animateCount("#stat-categories", cats.size);
+  }
+
+  function animateCount(selector, target) {
+    const el = $(selector);
+    if (!el) return;
+    const dur = 900;
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / dur);
+      // easeOutCubic
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = Math.round(target * eased).toString();
+      if (t < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
   }
 
   /* ------------------------------------------------------------------ */
   /*  Filter population                                                 */
   /* ------------------------------------------------------------------ */
   function populateCategoryFilter() {
+    const counts = countBy("category");
     const categories = Array.from(
       new Set(window.PROMPTS.map((p) => p.category))
     ).sort();
     const container = $("#category-filter");
+
+    // Add count to existing "All" button
+    const allBtn = container.querySelector('.chip[data-value="all"]');
+    if (allBtn) {
+      allBtn.innerHTML = `All <span class="chip-count">${window.PROMPTS.length}</span>`;
+    }
+
     categories.forEach((cat) => {
       const btn = document.createElement("button");
       btn.className = "chip";
       btn.dataset.filter = "category";
       btn.dataset.value = cat;
-      btn.textContent = cat;
+      btn.innerHTML = `${cat} <span class="chip-count">${counts[cat] || 0}</span>`;
       container.appendChild(btn);
     });
+
+    // Same for model
+    const modelCounts = countBy("model");
+    $$("#model-filter .chip").forEach((btn) => {
+      const v = btn.dataset.value;
+      if (v === "all") {
+        btn.innerHTML = `All <span class="chip-count">${window.PROMPTS.length}</span>`;
+      } else {
+        const label = btn.textContent.trim();
+        btn.innerHTML = `${label} <span class="chip-count">${modelCounts[v] || 0}</span>`;
+      }
+    });
+  }
+
+  function countBy(field) {
+    const out = {};
+    window.PROMPTS.forEach((p) => {
+      out[p[field]] = (out[p[field]] || 0) + 1;
+    });
+    return out;
   }
 
   /* ------------------------------------------------------------------ */
@@ -129,6 +184,74 @@
     const frag = document.createDocumentFragment();
     filtered.forEach((p) => frag.appendChild(buildCard(tpl, p)));
     grid.appendChild(frag);
+
+    // Scroll-reveal via IntersectionObserver
+    revealCards();
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Scroll-reveal                                                     */
+  /* ------------------------------------------------------------------ */
+  let revealObserver = null;
+  function revealCards() {
+    if (revealObserver) revealObserver.disconnect();
+    const cards = $$(".card:not(.revealed)");
+    if (!cards.length) return;
+    if (!("IntersectionObserver" in window)) {
+      cards.forEach((c) => c.classList.add("revealed"));
+      return;
+    }
+    revealObserver = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            e.target.classList.add("revealed");
+            revealObserver.unobserve(e.target);
+          }
+        });
+      },
+      { threshold: 0.05, rootMargin: "40px" }
+    );
+    cards.forEach((c) => revealObserver.observe(c));
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Keyboard shortcut (Ctrl+K / Cmd+K)                                */
+  /* ------------------------------------------------------------------ */
+  document.addEventListener("keydown", (e) => {
+    if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+      e.preventDefault();
+      const search = $("#search");
+      search.focus();
+      search.select();
+    }
+    if (e.key === "Escape") {
+      const search = $("#search");
+      if (document.activeElement === search) {
+        search.blur();
+      }
+    }
+  });
+
+  /* ------------------------------------------------------------------ */
+  /*  Back to top                                                       */
+  /* ------------------------------------------------------------------ */
+  function initBackToTop() {
+    const btn = $(".back-to-top");
+    if (!btn) return;
+    let ticking = false;
+    window.addEventListener("scroll", () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          btn.classList.toggle("visible", window.scrollY > 400);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+    btn.addEventListener("click", () => {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    });
   }
 
   function buildCard(tpl, p) {
@@ -145,6 +268,16 @@
     // title + use case
     node.querySelector(".card-title").textContent = p.title;
     node.querySelector(".card-usecase").textContent = p.useCase;
+
+    // preview teaser (first 90 chars of user prompt)
+    const previewEl = node.querySelector(".card-preview");
+    const userText = (p.user || "").replace(/\s+/g, " ").trim();
+    const preview = userText.length > 100 ? userText.slice(0, 100) + "…" : userText;
+    if (preview) {
+      previewEl.textContent = "▸ " + preview;
+    } else {
+      previewEl.remove();
+    }
 
     // system block (optional)
     const systemBlock = node.querySelector(".prompt-block.system");
@@ -174,7 +307,7 @@
 
     // tags
     const tagsBox = node.querySelector(".tags");
-    (p.tags || []).forEach((t) => {
+    (p.tags || []).slice(0, 4).forEach((t) => {
       const span = document.createElement("span");
       span.className = "tag";
       span.textContent = `#${t}`;
@@ -237,11 +370,12 @@
 
   function flashCopied(btn) {
     btn.classList.add("copied");
-    btn.textContent = "Copied ✓";
+    const label = btn.querySelector(".copy-label");
+    if (label) label.textContent = "Copied";
     showToast();
     setTimeout(() => {
       btn.classList.remove("copied");
-      btn.textContent = "Copy";
+      if (label) label.textContent = "Copy";
     }, 1500);
   }
 

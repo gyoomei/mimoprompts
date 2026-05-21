@@ -3,11 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="MimoPrompts — Curated prompt library optimized for Xiaomi MiMo V2.5 (chat, reasoning, image, speech). Free, copy-paste ready." />
+  <meta name="description" content="MimoPrompts — 100+ curated prompts optimized for Xiaomi MiMo V2.5 (Chat, Reasoning, Image, Speech). Free, copy-paste ready, zero signup." />
   <meta name="theme-color" content="#0a0a0f" />
   <meta property="og:title" content="MimoPrompts — Prompt library for Xiaomi MiMo V2.5" />
-  <meta property="og:description" content="50+ curated prompts optimized for MiMo chat, reasoning, image, and speech models. Free, no signup, copy-paste ready." />
+  <meta property="og:description" content="100+ curated prompts optimized for MiMo Chat, Reasoning, Image, and Speech models. Free, no signup, copy-paste ready." />
   <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://gyoomei.github.io/mimoprompts/" />
+  <meta name="twitter:card" content="summary_large_image" />
   <title>MimoPrompts — Prompt library for Xiaomi MiMo V2.5</title>
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23ff6b35'/%3E%3Ctext x='50%25' y='55%25' font-size='18' font-family='monospace' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'%3EM%3C/text%3E%3C/svg%3E" />
   <link rel="stylesheet" href="styles.css" />
@@ -19,20 +21,43 @@
         <div class="logo">M</div>
         <div>
           <h1>MimoPrompts</h1>
-          <p class="tagline">Curated prompt library for Xiaomi MiMo V2.5</p>
+          <p class="tagline">curated prompt library · MiMo V2.5</p>
         </div>
       </div>
       <nav class="nav-links">
-        <a href="https://platform.xiaomimimo.com/" target="_blank" rel="noopener">MiMo API</a>
-        <a href="https://github.com/gyoomei/mimoprompts" target="_blank" rel="noopener">GitHub</a>
         <a href="#contribute">Contribute</a>
+        <a href="https://github.com/gyoomei/mimoprompts" target="_blank" rel="noopener">GitHub</a>
+        <a href="https://platform.xiaomimimo.com/" target="_blank" rel="noopener">MiMo API ↗</a>
       </nav>
     </div>
     <div class="container hero-body">
       <h2>Prompts that get the best out of MiMo.</h2>
       <p class="lead">Hand-tuned for V2.5 chat, reasoning, image, and speech models. Copy, paste, ship.</p>
+
+      <div class="stats-row">
+        <div class="stat">
+          <span class="stat-value" id="stat-prompts">—</span>
+          <span class="stat-label">Prompts</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-categories">—</span>
+          <span class="stat-label">Categories</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value" id="stat-models">4</span>
+          <span class="stat-label">MiMo models</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">$0</span>
+          <span class="stat-label">No signup</span>
+        </div>
+      </div>
+
       <div class="search-row">
-        <input id="search" type="search" placeholder="Search prompts (e.g. 'solidity audit', 'cast', 'image prompt')..." aria-label="Search prompts" />
+        <div class="search-wrap">
+          <input id="search" type="search" placeholder="Search prompts (try 'solidity', 'thread', 'banner', 'feynman')..." aria-label="Search prompts" autocomplete="off" />
+          <span class="kbd-hint">Ctrl+K</span>
+        </div>
         <span id="count" class="count">— prompts</span>
       </div>
       <div class="filters">
@@ -59,28 +84,29 @@
   <main class="container">
     <section id="grid" class="grid" aria-live="polite"></section>
     <section id="empty" class="empty hidden">
-      <p>No prompts match your filter. Try a different search.</p>
+      <div class="empty-icon">⌕</div>
+      <p>No prompts match your filter.<br>Try a different keyword or clear the filters.</p>
     </section>
 
     <section id="contribute" class="contribute">
       <h2>Contribute a prompt</h2>
-      <p>MimoPrompts is open-source. Add your own prompt via pull request.</p>
+      <p>MimoPrompts is open-source. Add your own battle-tested prompt via pull request.</p>
       <ol>
         <li>Fork <a href="https://github.com/gyoomei/mimoprompts" target="_blank" rel="noopener">gyoomei/mimoprompts</a></li>
-        <li>Add your prompt to <code>prompts.json</code> following the schema</li>
+        <li>Add your prompt to <code>prompts.js</code> following the schema</li>
         <li>Open a PR — we merge weekly</li>
       </ol>
       <pre class="code"><code>{
-  "id": "my-prompt-slug",
-  "title": "My Prompt Title",
-  "category": "Coding",
-  "model": "V2.5 Reasoning",
-  "useCase": "When to use this prompt",
-  "tags": ["python", "refactor"],
-  "params": { "temperature": 0.3, "max_tokens": 2000 },
-  "system": "Optional system message",
-  "user": "The prompt body. Use {{placeholder}} for variables.",
-  "expectedOutput": "Brief description of what good output looks like"
+  id: "my-prompt-slug",
+  title: "My Prompt Title",
+  category: "Coding",
+  model: "V2.5 Reasoning",
+  useCase: "When to use this prompt",
+  tags: ["python", "refactor"],
+  params: { temperature: 0.3, max_tokens: 2000 },
+  system: "Optional system message",
+  user: "The prompt body. Use {{placeholder}} for variables.",
+  expectedOutput: "What good output looks like"
 }</code></pre>
     </section>
   </main>
@@ -88,11 +114,13 @@
   <footer>
     <div class="container">
       <p>MimoPrompts · MIT License · Built by <a href="https://github.com/gyoomei" target="_blank" rel="noopener">gyoomei</a></p>
-      <p>Not affiliated with Xiaomi. MiMo is a trademark of Xiaomi.</p>
+      <p>Not affiliated with Xiaomi. <strong>MiMo</strong> is a trademark of Xiaomi Inc.</p>
     </div>
   </footer>
 
-  <div id="toast" class="toast hidden">Copied to clipboard</div>
+  <div id="toast" class="toast hidden">✓ Copied to clipboard</div>
+
+  <button class="back-to-top" aria-label="Back to top">↑</button>
 
   <template id="card-template">
     <article class="card">
@@ -102,6 +130,7 @@
       </header>
       <h3 class="card-title"></h3>
       <p class="card-usecase"></p>
+      <div class="card-preview"></div>
       <details class="card-detail">
         <summary>Show prompt</summary>
         <div class="prompt-block system hidden">
@@ -120,7 +149,10 @@
       </details>
       <footer class="card-foot">
         <div class="tags"></div>
-        <button class="copy-btn" aria-label="Copy prompt">Copy</button>
+        <button class="copy-btn" aria-label="Copy prompt">
+          <span class="copy-icon">⧉</span>
+          <span class="copy-label">Copy</span>
+        </button>
       </footer>
     </article>
   </template>
