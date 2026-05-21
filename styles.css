@@ -637,40 +637,12 @@ footer a:hover { color: var(--accent); border-bottom-color: var(--accent); }
   to { transform: translate(-50%, 0); opacity: 1; }
 }
 
-/* ============ Responsive ============ */
+/* ============ Responsive: tablet ============ */
 @media (max-width: 900px) {
-  .grid { grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 1rem; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1rem; }
   .stats-row { gap: 1.5rem; }
 }
-@media (max-width: 768px) {
-  .container { padding: 0 1.1rem; }
-  .hero { padding: 1rem 0 2.5rem; }
-  .hero .container:first-of-type {
-    flex-direction: row; flex-wrap: wrap;
-    justify-content: space-between; gap: 0.75rem;
-  }
-  .nav-links { gap: 0.2rem; }
-  .nav-links a { padding: 0.4rem 0.6rem; font-size: 0.8rem; }
-  .hero-body { padding: 1.5rem 0 0; }
-  .hero-body h2 { font-size: 2rem; line-height: 1.15; }
-  .lead { margin-bottom: 1.5rem; font-size: 0.98rem; }
-  .stats-row {
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    grid-template-columns: repeat(4, 1fr);
-    display: grid;
-  }
-  .stat { align-items: flex-start; padding: 0; }
-  .stat-value { font-size: 1.4rem; }
-  .stat-label { font-size: 0.65rem; letter-spacing: 0.06em; }
-
-  .grid { grid-template-columns: 1fr; gap: 0.85rem; }
-  .contribute { padding: 1.75rem 1.25rem; margin-top: 2.5rem; }
-  .contribute h2 { font-size: 1.4rem; }
-  main { padding: 1.5rem 0 3rem; }
-  .card { padding: 1.1rem; }
-  .card-title { font-size: 1.05rem; }
-}
+/* Mobile rules consolidated in MOBILE OVERHAUL section below */
 @media (max-width: 480px) {
   .stats-row { gap: 0.6rem; }
   .stat-value { font-size: 1.2rem; }
@@ -835,20 +807,21 @@ body > * { position: relative; z-index: 1; }
   right: 0.8rem;
   top: 50%;
   transform: translateY(-50%);
-  width: 24px;
-  height: 24px;
+  width: 26px;
+  height: 26px;
   border-radius: 50%;
   border: none;
   background: var(--bg-3);
   color: var(--text-3);
-  font-size: 0.7rem;
+  font-size: 0.75rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  z-index: 2;
 }
 .search-clear.visible {
   opacity: 1;
@@ -858,13 +831,17 @@ body > * { position: relative; z-index: 1; }
   background: var(--accent);
   color: white;
 }
+.search-clear:active {
+  transform: translateY(-50%) scale(0.9);
+}
 
 /* hide kbd-hint when clear is visible */
 .search-clear.visible ~ .kbd-hint { display: none; }
 
-/* adjust search input padding for clear button */
-#search { padding-right: 5rem !important; }
-#search:not(:focus) ~ .search-clear:not(.visible) ~ .kbd-hint { display: block; }
+/* adjust search input padding for clear button (DESKTOP) */
+@media (min-width: 769px) {
+  #search { padding-right: 5rem; }
+}
 
 /* ============ Search highlight marks ============ */
 mark {
@@ -887,41 +864,101 @@ mark {
   font-weight: 600;
 }
 
-/* ============ Mobile filter scroll ============ */
+/* ============ Chips: desktop wraps, mobile scrolls ============ */
 .chips {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  padding-bottom: 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
 }
-.chips::-webkit-scrollbar { display: none; }
 
-/* ============ Better mobile search ============ */
+/* ============================================================ */
+/* ============ MOBILE OVERHAUL ≤768px ======================== */
+/* ============================================================ */
 @media (max-width: 768px) {
-  .search-wrap {
-    position: relative;
+  /* Hero section */
+  .hero {
+    padding: 0.75rem 0 2.25rem;
   }
-  #search {
-    font-size: 16px; /* prevent iOS zoom */
-    padding: 0.85rem 3rem 0.85rem 2.6rem !important;
+  .hero .container:first-of-type {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0 1rem;
   }
-  .search-clear {
-    right: 0.6rem;
+  .brand { gap: 0.5rem; }
+  .logo { width: 32px; height: 32px; font-size: 1rem; }
+  .brand h1 { font-size: 1.05rem; }
+  .tagline { font-size: 0.65rem; }
+  .nav-links {
+    gap: 0;
+    flex-wrap: nowrap;
   }
-  .kbd-hint {
-    display: none !important;
+  .nav-links a {
+    padding: 0.4rem 0.55rem;
+    font-size: 0.78rem;
+    white-space: nowrap;
   }
+
+  .hero-body {
+    padding: 1.25rem 0 0;
+  }
+  .hero-body h2 {
+    font-size: 1.7rem;
+    line-height: 1.2;
+    margin-bottom: 0.6rem;
+  }
+  .lead {
+    font-size: 0.92rem;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Stats: 2x2 grid on mobile (4 stats too cramped in 1 row) */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.85rem 1.5rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: var(--bg-glass);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    backdrop-filter: var(--blur);
+    -webkit-backdrop-filter: var(--blur);
+  }
+  .stat { align-items: flex-start; }
+  .stat-value { font-size: 1.35rem; }
+  .stat-label { font-size: 0.65rem; letter-spacing: 0.06em; }
+
+  /* Search row */
   .search-row {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: 0.55rem;
+    margin-bottom: 1rem;
   }
+  .search-wrap { position: relative; width: 100%; }
+  #search {
+    font-size: 16px;          /* prevent iOS zoom */
+    padding: 0.9rem 3rem 0.9rem 2.6rem;
+    width: 100%;
+    border-radius: var(--radius);
+  }
+  .search-icon { left: 0.95rem; font-size: 1rem; }
+  .search-clear { right: 0.6rem; width: 30px; height: 30px; font-size: 0.85rem; }
+  .kbd-hint { display: none !important; }
   .count {
-    text-align: right;
-    font-size: 0.78rem;
+    text-align: left;
+    font-size: 0.8rem;
+    padding-left: 0.25rem;
   }
-  /* Label stays fixed, only chips scroll horizontally */
+
+  /* Filters: label + horizontal-scroll chips */
+  .filters { gap: 0.6rem; }
   .filter-group {
+    display: flex;
+    flex-direction: row;
     flex-wrap: nowrap;
     align-items: center;
     gap: 0.6rem;
@@ -931,20 +968,78 @@ mark {
     min-width: auto;
     flex-shrink: 0;
     margin: 0;
-    font-size: 0.66rem;
+    font-size: 0.62rem;
+    letter-spacing: 0.08em;
+    color: var(--text-3);
   }
   .filter-group .chips {
     flex: 1;
     flex-wrap: nowrap;
     overflow-x: auto;
+    overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 0.4rem;
-    -webkit-mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
-            mask-image: linear-gradient(to right, black calc(100% - 24px), transparent);
+    padding-bottom: 0.3rem;
+    gap: 0.4rem;
+    -webkit-mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
+            mask-image: linear-gradient(to right, black calc(100% - 28px), transparent);
   }
   .filter-group .chips::-webkit-scrollbar { display: none; }
-  .chip { flex-shrink: 0; }
+  .chip {
+    flex-shrink: 0;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.78rem;
+  }
+  .chip-count { font-size: 0.65rem; padding: 0.05rem 0.35rem; }
+
+  /* Grid: single column, tighter */
+  main { padding: 1.25rem 0 2rem; }
+  .grid { grid-template-columns: 1fr; gap: 0.85rem; }
+  .card { padding: 1.1rem; border-radius: var(--radius); }
+  .card-title { font-size: 1.02rem; line-height: 1.35; }
+  .card-usecase { font-size: 0.85rem; }
+  .card-preview { font-size: 0.78rem; }
+  .card-foot { gap: 0.5rem; }
+  .copy-btn { padding: 0.5rem 0.9rem; font-size: 0.78rem; }
+  .tags { gap: 0.3rem; }
+  .tag { font-size: 0.68rem; padding: 0.18rem 0.5rem; }
+
+  /* Contribute */
+  .contribute { padding: 1.5rem 1.1rem; margin-top: 2.5rem; }
+  .contribute h2 { font-size: 1.3rem; }
+  .contribute p { font-size: 0.9rem; }
+  .contribute .code { font-size: 0.75rem; padding: 0.85rem; }
+
+  /* Back to top: clear from iOS bottom bar */
+  .back-to-top {
+    bottom: 1.1rem;
+    right: 1.1rem;
+    width: 42px;
+    height: 42px;
+  }
+
+  /* Container padding */
+  .container { padding: 0 1rem; }
+
+  /* Toast positioning above iOS bottom bar */
+  .toast {
+    bottom: 1.5rem;
+    font-size: 0.85rem;
+    padding: 0.7rem 1.2rem;
+  }
+}
+
+/* ============ Extra-small phones ≤400px ============ */
+@media (max-width: 400px) {
+  .hero-body h2 { font-size: 1.5rem; }
+  .lead { font-size: 0.86rem; }
+  .stats-row { padding: 0.85rem; gap: 0.7rem 1.2rem; }
+  .stat-value { font-size: 1.2rem; }
+  .nav-links a { padding: 0.35rem 0.4rem; font-size: 0.72rem; }
+  .brand h1 { font-size: 0.95rem; }
+  .tagline { display: none; }
+  .card { padding: 0.95rem; }
+  .card-title { font-size: 0.96rem; }
 }
 
 /* ============ Reduce motion ============ */
