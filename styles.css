@@ -815,6 +815,114 @@ body > * { position: relative; z-index: 1; }
   transform: translateX(100%);
 }
 
+
+/* ============ Search clear button ============ */
+.search-clear {
+  position: absolute;
+  right: 0.8rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: none;
+  background: var(--bg-3);
+  color: var(--text-3);
+  font-size: 0.7rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+}
+.search-clear.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+.search-clear:hover {
+  background: var(--accent);
+  color: white;
+}
+
+/* hide kbd-hint when clear is visible */
+.search-clear.visible ~ .kbd-hint { display: none; }
+
+/* adjust search input padding for clear button */
+#search { padding-right: 5rem !important; }
+#search:not(:focus) ~ .search-clear:not(.visible) ~ .kbd-hint { display: block; }
+
+/* ============ Search highlight marks ============ */
+mark {
+  background: rgba(255, 107, 53, 0.25);
+  color: var(--text);
+  border-radius: 2px;
+  padding: 0 2px;
+  font-weight: inherit;
+}
+
+.tag-match {
+  border-color: var(--accent) !important;
+  color: var(--accent-2) !important;
+  background: var(--accent-soft) !important;
+}
+
+/* ============ Active count ============ */
+.count.active {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* ============ Mobile filter scroll ============ */
+.chips {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.2rem;
+}
+.chips::-webkit-scrollbar { display: none; }
+
+/* ============ Better mobile search ============ */
+@media (max-width: 768px) {
+  .search-wrap {
+    position: relative;
+  }
+  #search {
+    font-size: 16px; /* prevent iOS zoom */
+    padding: 0.85rem 4.5rem 0.85rem 2.6rem !important;
+  }
+  .search-clear {
+    right: 0.6rem;
+  }
+  .kbd-hint {
+    display: none !important;
+  }
+  .search-row {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+  .count {
+    text-align: right;
+    font-size: 0.78rem;
+  }
+  /* filter group horizontal scroll */
+  .filter-group {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    padding-bottom: 0.3rem;
+  }
+  .filter-group::-webkit-scrollbar { display: none; }
+  .filter-group > label {
+    min-width: auto;
+    flex-shrink: 0;
+    margin-right: 0.5rem;
+  }
+}
+
 /* ============ Reduce motion ============ */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

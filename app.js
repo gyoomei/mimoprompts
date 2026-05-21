@@ -17,6 +17,8 @@
     category: "all",
   };
 
+  let debounceTimer = null;
+
   /* ------------------------------------------------------------------ */
   /*  Init                                                              */
   /* ------------------------------------------------------------------ */
@@ -49,7 +51,6 @@
     const start = performance.now();
     const step = (now) => {
       const t = Math.min(1, (now - start) / dur);
-      // easeOutCubic
       const eased = 1 - Math.pow(1 - t, 3);
       el.textContent = Math.round(target * eased).toString();
       if (t < 1) requestAnimationFrame(step);
@@ -67,7 +68,6 @@
     ).sort();
     const container = $("#category-filter");
 
-    // Add count to existing "All" button
     const allBtn = container.querySelector('.chip[data-value="all"]');
     if (allBtn) {
       allBtn.innerHTML = `All <span class="chip-count">${window.PROMPTS.length}</span>`;
@@ -82,7 +82,6 @@
       container.appendChild(btn);
     });
 
-    // Same for model
     const modelCounts = countBy("model");
     $$("#model-filter .chip").forEach((btn) => {
       const v = btn.dataset.value;
@@ -107,10 +106,28 @@
   /*  Events                                                            */
   /* ------------------------------------------------------------------ */
   function bindEvents() {
+    // Search input with debounce
     $("#search").addEventListener("input", (e) => {
-      state.query = e.target.value.trim().toLowerCase();
-      render();
+      clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        state.query = e.target.value.trim().toLowerCase();
+        updateClearBtn();
+        render();
+      }, 150);
     });
+
+    // Clear button
+    const clearBtn = $(".search-clear");
+    if (clearBtn) {
+      clearBtn.addEventListener("click", () => {
+        const input = $("#search");
+        input.value = "";
+        state.query = "";
+        updateClearBtn();
+        render();
+        input.focus();
+      });
+    }
 
     document.addEventListener("click", (e) => {
       const chip = e.target.closest(".chip");
@@ -136,8 +153,15 @@
     render();
   }
 
+  function updateClearBtn() {
+    const btn = $(".search-clear");
+    if (btn) {
+      btn.classList.toggle("visible", state.query.length > 0);
+    }
+  }
+
   /* ------------------------------------------------------------------ */
-  /*  Filtering                                                         */
+  /*  Search: multi-token matching                                       */
   /* ------------------------------------------------------------------ */
   function matches(prompt) {
     if (state.model !== "all" && prompt.model !== state.model) return false;
@@ -155,7 +179,12 @@
       ]
         .join(" ")
         .toLowerCase();
-      if (!haystack.includes(state.query)) return false;
+
+      // Split query into tokens — ALL must match (AND logic)
+      const tokens = state.query.split(/\s+/).filter(Boolean);
+      for (const token of tokens) {
+        if (!haystack.includes(token)) return false;
+      }
     }
     return true;
   }
@@ -171,12 +200,23 @@
     grid.innerHTML = "";
 
     const filtered = window.PROMPTS.filter(matches);
-    $("#count").textContent = `${filtered.length} prompt${
+    const countEl = $("#count");
+    countEl.textContent = `${filtered.length} prompt${
       filtered.length === 1 ? "" : "s"
     }`;
 
+    // Highlight count when filtered
+    countEl.classList.toggle("active", state.query.length > 0 || state.model !== "all" || state.category !== "all");
+
     if (filtered.length === 0) {
       empty.classList.remove("hidden");
+      // Update empty state message
+      const emptyMsg = empty.querySelector("p");
+      if (emptyMsg && state.query) {
+        emptyMsg.innerHTML = `No prompts match "<strong>${escapeHtml(state.query)}</strong>".<br>Try different keywords or clear the filters.`;
+      } else if (emptyMsg) {
+        emptyMsg.innerHTML = "No prompts match your filter.<br>Try a different keyword or clear the filters.";
+      }
       return;
     }
     empty.classList.add("hidden");
@@ -185,8 +225,26 @@
     filtered.forEach((p) => frag.appendChild(buildCard(tpl, p)));
     grid.appendChild(frag);
 
-    // Scroll-reveal via IntersectionObserver
     revealCards();
+  }
+
+  function escapeHtml(str) {
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  /* ------------------------------------------------------------------ */
+  /*  Search highlight                                                  */
+  /* ------------------------------------------------------------------ */
+  function highlightText(text, query) {
+    if (!query || !text) return escapeHtml(text || "");
+    const tokens = query.split(/\s+/).filter(Boolean);
+    let result = escapeHtml(text);
+    tokens.forEach((token) => {
+      if (token.length < 2) return; // skip single char
+      const regex = new RegExp(`(${token.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi");
+      result = result.replace(regex, '<mark>$1</mark>');
+    });
+    return result;
   }
 
   /* ------------------------------------------------------------------ */
@@ -228,7 +286,14 @@
     if (e.key === "Escape") {
       const search = $("#search");
       if (document.activeElement === search) {
-        search.blur();
+        if (search.value) {
+          search.value = "";
+          state.query = "";
+          updateClearBtn();
+          render();
+        } else {
+          search.blur();
+        }
       }
     }
   });
@@ -265,16 +330,28 @@
     const categoryBadge = node.querySelector(".badge.category");
     categoryBadge.textContent = p.category;
 
-    // title + use case
-    node.querySelector(".card-title").textContent = p.title;
-    node.querySelector(".card-usecase").textContent = p.useCase;
+    // title + use case (with highlight)
+    const titleEl = node.querySelector(".card-title");
+    const usecaseEl = node.querySelector(".card-usecase");
 
-    // preview teaser (first 90 chars of user prompt)
+    if (state.query) {
+      titleEl.innerHTML = highlightText(p.title, state.query);
+      usecaseEl.innerHTML = highlightText(p.useCase, state.query);
+    } else {
+      titleEl.textContent = p.title;
+      usecaseEl.textContent = p.useCase;
+    }
+
+    // preview teaser
     const previewEl = node.querySelector(".card-preview");
     const userText = (p.user || "").replace(/\s+/g, " ").trim();
     const preview = userText.length > 100 ? userText.slice(0, 100) + "…" : userText;
     if (preview) {
-      previewEl.textContent = "▸ " + preview;
+      if (state.query) {
+        previewEl.innerHTML = "▸ " + highlightText(preview, state.query);
+      } else {
+        previewEl.textContent = "▸ " + preview;
+      }
     } else {
       previewEl.remove();
     }
@@ -305,12 +382,17 @@
       paramsBox.remove();
     }
 
-    // tags
+    // tags (with highlight)
     const tagsBox = node.querySelector(".tags");
     (p.tags || []).slice(0, 4).forEach((t) => {
       const span = document.createElement("span");
       span.className = "tag";
-      span.textContent = `#${t}`;
+      if (state.query && state.query.split(/\s+/).some(tok => tok.length >= 2 && t.toLowerCase().includes(tok))) {
+        span.innerHTML = "#" + highlightText(t, state.query);
+        span.classList.add("tag-match");
+      } else {
+        span.textContent = `#${t}`;
+      }
       tagsBox.appendChild(span);
     });
 
