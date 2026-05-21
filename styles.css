@@ -749,7 +749,7 @@ body > * { position: relative; z-index: 1; }
 /* ============ Keyboard shortcut hint ============ */
 .search-wrap .kbd-hint {
   position: absolute;
-  right: 1rem;
+  right: 3rem;
   top: 50%;
   transform: translateY(-50%);
   font-size: 0.7rem;

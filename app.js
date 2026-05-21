@@ -387,7 +387,7 @@
     (p.tags || []).slice(0, 4).forEach((t) => {
       const span = document.createElement("span");
       span.className = "tag";
-      if (state.query && state.query.split(/\s+/).some(tok => tok.length >= 2 && t.toLowerCase().includes(tok))) {
+if (state.query && state.query.split(/\s+/).some(tok => tok.length >= 2 && t.toLowerCase().includes(tok)))
         span.innerHTML = "#" + highlightText(t, state.query);
         span.classList.add("tag-match");
       } else {
